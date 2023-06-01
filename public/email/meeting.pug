@@ -1,0 +1,17 @@
+extends baseEmail 
+
+block content 
+  p You are invited to join a meeting scheduled at #{meeting.date} #{meeting.startTime}
+  p Meeting subject is: #{meeting.subject}
+  p It will be held at: #{meeting.place}
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=`${url}`, target='_blank') View the meeting
+  p We hope to see you in the meeting!
+  p - #{senderName}, Council coordinator
