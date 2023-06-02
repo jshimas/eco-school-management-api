@@ -3,7 +3,7 @@ module.exports = (err, req, res, next) => {
   err.success = err.success || false;
 
   if (err.name === "SequelizeValidationError") {
-    err.message = "Validation errors";
+    err.message = err.message || "Validation errors";
     err.errors = err.errors.map((e) => e.message.split(".")[1]);
   }
 

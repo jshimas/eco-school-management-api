@@ -3,10 +3,10 @@ const pug = require("pug");
 const { htmlToText } = require("html-to-text");
 
 module.exports = class Email {
-  constructor(userSender, userReceiver, url) {
-    this.to = Array.isArray(userReceiver)
-      ? userReceiver.map((r) => r.email)
-      : userReceiver.email;
+  constructor(userSender, recipients, url) {
+    this.to = Array.isArray(recipients)
+      ? recipients.map((r) => r.email)
+      : recipients.email;
     this.senderName = `${userSender.firstname} ${userSender.lastname}`;
     this.url = url;
     this.from = `Owly ${userSender.role} <${userSender.email}>`;
@@ -36,25 +36,25 @@ module.exports = class Email {
       }
     );
 
-    // 2) Define email options
-    const mailOptions = {
-      from: this.from,
-      to: this.to,
-      subject: subject,
-      html,
-      text: htmlToText(html),
-    };
+    this.to.forEach((recipient) => {
+      const mailOptions = {
+        from: this.from,
+        to: recipient,
+        subject: subject,
+        html,
+        text: htmlToText(html),
+      };
 
-    // 3) Creater a transport and send email
-    console.log("SENDING EMAIL");
-    await this.newTransport().sendMail(mailOptions);
+      console.log("SENDING EMAIL");
+      this.newTransport().sendMail(mailOptions);
+    });
   }
 
-  async sendPasswordCreate() {
-    await this.send("welcome", "Welcome to the Owly!");
+  sendPasswordCreate() {
+    this.send("welcome", "Welcome to the Owly!");
   }
 
-  async sendMeetingDetails(meeting) {
-    await this.send("meeting", "Invitation to join the meeting", meeting);
+  sendMeetingDetails(meeting) {
+    this.send("meeting", "Invitation to join the meeting", meeting);
   }
 };

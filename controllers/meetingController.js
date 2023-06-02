@@ -5,6 +5,7 @@ const AppError = require("../utils/AppError");
 const multer = require("multer");
 const path = require("path");
 const cloudinary = require("cloudinary").v2;
+const Email = require("../utils/email");
 
 cloudinary.config({
   cloud_name: "dvijawvce",
@@ -125,6 +126,7 @@ exports.createMeeting = catchAsync(async (req, res, next) => {
   };
 
   const newMeeting = await sequelize.transaction(async (t) => {
+    console.log(meetingData);
     const createdMeeting = await Meeting.create(meetingData, {
       transaction: t,
     });
@@ -141,6 +143,31 @@ exports.createMeeting = catchAsync(async (req, res, next) => {
 
     return createdMeeting;
   });
+
+  const recipients = await User.findAll({
+    where: { schoolId: req.user.schoolId },
+  });
+  try {
+    const URL = `${req.protocol}://${req.get("host")}/api/v1/meetings/${
+      newMeeting.id
+    }`;
+    new Email(req.user, recipients, URL).sendMeetingDetails(newMeeting);
+
+    res.status(200).json({
+      sucess: true,
+      message: `New meeting was created and an email was sent to: ${recipients
+        .map((r) => r.email)
+        .join(", ")} to inform about it`,
+      URI: `/meetings/${newMeeting.id}`,
+    });
+  } catch (err) {
+    return next(
+      new AppError(
+        "There was an errorr sending an email. Try creating user later!",
+        500
+      )
+    );
+  }
 
   res.status(201).json({
     message: "Meeting was successfully created",
