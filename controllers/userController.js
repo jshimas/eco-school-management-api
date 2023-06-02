@@ -83,8 +83,6 @@ exports.createPassword = catchAsync(async (req, res, next) => {
   }
 
   // 2) Verification of the token
-  console.log(req.params.token);
-  console.log(process.env.JWT_SECRET);
   const decoded = await promisify(jwt.verify)(
     req.params.token,
     process.env.JWT_SECRET

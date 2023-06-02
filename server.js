@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { startServer } = require("./utils/serverHandler");
 const { sequelize } = require("./models");
 

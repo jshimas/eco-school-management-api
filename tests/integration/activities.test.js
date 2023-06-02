@@ -3,7 +3,6 @@ const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const app = require("../../app"); // Replace with the path to your Express app
 const { sequelize, Sequelize, Activity, User } = require("../../models");
-const { startServer, closeServer } = require("../../utils/serverHandler");
 
 const runSeeder = async () => {
   const userRolesSeeder = require("../../seeders/userroles");
@@ -22,13 +21,11 @@ const runSeeder = async () => {
 
 describe("Create activity Controller", () => {
   beforeAll(async () => {
-    await startServer();
     await sequelize.sync({ force: true });
     await runSeeder();
   });
 
   afterAll(async () => {
-    await closeServer();
     await sequelize.close();
   });
 
@@ -54,6 +51,7 @@ describe("Create activity Controller", () => {
         .set("Authorization", `Bearer ${token}`)
         .send(testActivity);
 
+      console.log(response.body);
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("URI");
 

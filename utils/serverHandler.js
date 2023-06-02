@@ -1,3 +1,4 @@
+require("dotenv").config();
 const app = require("../app"); // Replace with the path to your Express app
 
 let server;
@@ -5,12 +6,14 @@ let server;
 module.exports = {
   startServer: async (port = 8080, host = "localhost") => {
     return new Promise((resolve, reject) => {
-      server = app.listen(port, host, () => {
-        console.log(`App running at http://${host}:${port}/`);
-        resolve();
-      });
+      if (process.env.NODE_ENV !== "test") {
+        server = app.listen(port, host, () => {
+          console.log(`App running at http://${host}:${port}/`);
+          resolve();
+        });
 
-      server.on("error", reject);
+        server.on("error", reject);
+      }
     });
   },
 

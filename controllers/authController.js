@@ -1,5 +1,4 @@
 const { User, UserRole } = require("../models");
-const { promisify } = require("util");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
 const createSendToken = require("../utils/createSendToken");
@@ -62,12 +61,18 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 2) Verification of the token
-  console.log(token);
-  console.log(process.env.JWT_SECRET);
   // const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return next(
+      new AppError("You are not logged in. Please login to get access", 401)
+    );
+  }
 
   // 3) Check if user still exists
+  console.log(decoded);
   let currentUser = await User.findByPk(decoded.id, { include: UserRole });
   if (!currentUser) {
     return next(
@@ -79,5 +84,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   currentUser = currentUser.toJSON();
   currentUser.role = currentUser.role.role;
   req.user = currentUser;
+  console.log("CONTROLLER REQ: ", req.user);
   next();
 });

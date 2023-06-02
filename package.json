@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --runInBand",
     "start": "node server.js"
   },
   "keywords": [],
@@ -25,6 +25,7 @@
     "nodemailer": "^6.9.1",
     "pug": "^3.0.2",
     "sequelize": "^6.30.0",
+    "sequelize-mock": "^0.10.2",
     "supertest": "^6.3.3"
   },
   "devDependencies": {
