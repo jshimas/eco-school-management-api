@@ -123,7 +123,8 @@ exports.checkSupervisorPermission = catchAsync(async (req, res, next) => {
     },
   });
 
-  if (!supervisor || !["admin", "coordinator"].includes(req.user.role)) {
+  console.log("role: ", req.user.role);
+  if (!supervisor && !["admin", "coordinator"].includes(req.user.role)) {
     return next(
       new AppError(
         "You do not have the supervisor role to perform update on this activity",

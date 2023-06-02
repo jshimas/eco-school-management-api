@@ -148,6 +148,7 @@ describe("checkSupervisorPermission", () => {
 
   it("should call next with an error if supervisor is not found", async () => {
     jest.spyOn(Supervisor, "findOne").mockResolvedValue(null);
+    mockReq.user.role = "student";
 
     await activitiesController.checkSupervisorPermission(
       mockReq,

@@ -72,7 +72,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 3) Check if user still exists
-  console.log(decoded);
   let currentUser = await User.findByPk(decoded.id, { include: UserRole });
   if (!currentUser) {
     return next(
@@ -84,6 +83,5 @@ exports.protect = catchAsync(async (req, res, next) => {
   currentUser = currentUser.toJSON();
   currentUser.role = currentUser.role.role;
   req.user = currentUser;
-  console.log("CONTROLLER REQ: ", req.user);
   next();
 });

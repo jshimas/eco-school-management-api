@@ -34,7 +34,6 @@ describe("Login Controller", () => {
     it("should return an error if email and password are not provided", async () => {
       const response = await request(app).post("/api/v1/users/login").send({}); // Empty request body
 
-      // console.log(response);
       expect(response.status).toBe(400);
       expect(response.body.message).toBe("Please provide email and password!");
     });
@@ -44,7 +43,6 @@ describe("Login Controller", () => {
         .post("/api/v1/users/login")
         .send({ email: "incorrect@example.com", password: "wrongpassword" });
 
-      // console.log(response);
       expect(response.status).toBe(401);
       expect(response.body.message).toBe("Incorrect email or password");
     });

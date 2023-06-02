@@ -4,7 +4,6 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
 const multer = require("multer");
 const path = require("path");
-const deleteFilesThatStartsWith = require("../utils/deleteFilesThatStartWith");
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
@@ -230,6 +229,5 @@ exports.updateMeeting = catchAsync(async (req, res, next) => {
     }
   });
 
-  await deleteFilesThatStartsWith(`meeting-${req.params.id}`);
   res.status(204).json({});
 });
