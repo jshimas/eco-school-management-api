@@ -123,7 +123,6 @@ exports.checkSupervisorPermission = catchAsync(async (req, res, next) => {
     },
   });
 
-  console.log("role: ", req.user.role);
   if (!supervisor && !["admin", "coordinator"].includes(req.user.role)) {
     return next(
       new AppError(
@@ -133,6 +132,31 @@ exports.checkSupervisorPermission = catchAsync(async (req, res, next) => {
     );
   }
 
+  next();
+});
+
+exports.checkDeletePermission = catchAsync(async (req, res, next) => {
+  const { activityId } = req.params;
+
+  // find the activity by the provided id
+  const activity = await Activity.findByPk(activityId);
+  if (!activity) {
+    return next(
+      new AppError(`The ativity with ID ${activityId} was not found`, 404)
+    );
+  }
+  // 1. an activity can be deleted by it's creator, coordinator and admin
+  // 2. creator can only delete the acitivity until it's not approved
+
+  if (
+    ["admin", "coordinator"].includes(req.user.role) ||
+    (activity.creatorId === req.user.id && !activity.approved)
+  ) {
+  } else {
+    return next(
+      new AppError(`You don't have the permission to perform this action`, 403)
+    );
+  }
   next();
 });
 
@@ -279,7 +303,7 @@ exports.deleteActivity = catchAsync(async (req, res, next) => {
   if (!activityToDelete) {
     return next(
       new AppError(
-        `Activity with ID ${activityId} was not found at specified school.`,
+        `Activity with ID ${activityId} was not found at school with ID ${schoolId}.`,
         404
       )
     );

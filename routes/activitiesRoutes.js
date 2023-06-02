@@ -22,6 +22,9 @@ router
     activitesController.uploadImages,
     activitesController.updateActivity
   )
-  .delete(activitesController.deleteActivity);
+  .delete(
+    activitesController.checkDeletePermission,
+    activitesController.deleteActivity
+  );
 
 module.exports = router;

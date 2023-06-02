@@ -109,15 +109,13 @@ describe("Activity Controller", () => {
       const schools = await School.findAll();
       const activities = await Activity.findAll();
 
-      console.log(schools);
-      console.log(activities);
+      c;
       // Perform the request to update the activity
       const response = await request(app)
         .patch(`/api/v1/schools/${school.id}/activities/${activity.id}`)
         .set("Authorization", `Bearer ${token}`)
         .send(requestBody);
 
-      console.log(response.body);
       expect(response.status).toBe(204);
       const updatedActivity = await Activity.findByPk(activity.id);
       expect(updatedActivity).toBeDefined();
@@ -150,7 +148,6 @@ describe("Activity Controller", () => {
     });
 
     afterEach(async () => {
-      console.log(activityId);
       await Activity.destroy({ where: { id: activityId } });
       await School.destroy({ where: { id: schoolId } });
     });
@@ -159,16 +156,50 @@ describe("Activity Controller", () => {
       const token = jwt.sign({ id: testUserId }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN,
       });
+
       const response = await request(app)
         .delete(`/api/v1/schools/${schoolId}/activities/${activityId}`)
-        .set("Authorization", `Bearer ${token}`);
-
-      // Assert the response status code
-      expect(response.status).toBe(204);
+        .set("Authorization", `Bearer ${token}`)
+        .expect(204);
 
       // Perform additional checks, such as querying the database to verify the deletion
       const deletedActivity = await Activity.findByPk(activityId);
       expect(deletedActivity).toBeNull();
+    });
+  });
+
+  describe("checkDeletePermission middleware", () => {
+    let testActivity;
+    let schoolId = 1;
+    let memberId = 1;
+
+    beforeEach(async () => {
+      testActivity = await Activity.create({
+        theme: "transportation",
+        name: "eletric vehicles",
+        location: "Vila do Conde",
+        startDate: "2023-06-08",
+        supervisorsIds: [59, 60],
+        creatorId: memberId,
+        schoolId: schoolId,
+      });
+    });
+
+    afterEach(async () => {
+      await testActivity.destroy();
+    });
+
+    it("should not allow deletion by the creator after approval", async () => {
+      const token = jwt.sign({ id: memberId }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      });
+      testActivity.approved = true;
+      await testActivity.save();
+
+      const res = await request(app)
+        .delete(`/api/v1/schools/${schoolId}/activities/${testActivity.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(403);
     });
   });
 });

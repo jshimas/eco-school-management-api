@@ -70,7 +70,6 @@ exports.protect = catchAsync(async (req, res, next) => {
       new AppError("You are not logged in. Please login to get access", 401)
     );
   }
-
   // 3) Check if user still exists
   let currentUser = await User.findByPk(decoded.id, { include: UserRole });
   if (!currentUser) {
