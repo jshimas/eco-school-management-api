@@ -43,7 +43,7 @@ describe("Activity Controller", () => {
         theme: "transportation",
         name: "eletric vehicles",
         location: "Vila do Conde",
-        startDate: "2023-06-03",
+        startDate: "2023-07-01",
         supervisorsIds: [1, 2],
       };
 
@@ -89,7 +89,7 @@ describe("Activity Controller", () => {
         theme: "transportation",
         name: "eletric vehicles",
         location: "Vila do Conde",
-        startDate: "2023-06-03",
+        startDate: "2023-07-01",
         schoolId: school.id,
         creatorId: testUserId,
         supervisorIds: [testUserId],
@@ -97,7 +97,7 @@ describe("Activity Controller", () => {
 
       // Create a sample request body with updated activity data
       const requestBody = {
-        endDate: "2023-06-16",
+        endDate: "2023-07-03",
         goal: "survive",
       };
 
@@ -106,10 +106,6 @@ describe("Activity Controller", () => {
         expiresIn: process.env.JWT_EXPIRES_IN,
       });
 
-      const schools = await School.findAll();
-      const activities = await Activity.findAll();
-
-      c;
       // Perform the request to update the activity
       const response = await request(app)
         .patch(`/api/v1/schools/${school.id}/activities/${activity.id}`)
@@ -138,7 +134,7 @@ describe("Activity Controller", () => {
         theme: "transportation",
         name: "eletric vehicles",
         location: "Vila do Conde",
-        startDate: "2023-06-03",
+        startDate: "2023-07-01",
         schoolId: school.id,
         creatorId: testUserId,
         supervisorIds: [testUserId],
@@ -196,7 +192,7 @@ describe("Activity Controller", () => {
       testActivity.approved = true;
       await testActivity.save();
 
-      const res = await request(app)
+      await request(app)
         .delete(`/api/v1/schools/${schoolId}/activities/${testActivity.id}`)
         .set("Authorization", `Bearer ${token}`)
         .expect(403);

@@ -8,6 +8,11 @@ const {
   checkUpdatePermsissions,
 } = require("../../controllers/meetingController");
 
+jest.mock(
+  "../../utils/catchAsync",
+  () => (fn) => (req, res, next) => fn(req, res, next)
+);
+
 describe("getMeeting", () => {
   let mockReq, mockRes, mockNext;
 
@@ -337,7 +342,7 @@ describe("checkUpdatePermsissions", () => {
         id: 1,
       },
       params: {
-        meetingId: 1,
+        id: 1,
       },
     };
 
@@ -355,6 +360,7 @@ describe("checkUpdatePermsissions", () => {
 
   it("should call next if the user is the editor of the meeting", async () => {
     jest.spyOn(Participant, "findOne").mockResolvedValue({ id: 1 });
+    jest.spyOn(Meeting, "findOne").mockResolvedValue({ id: 1 });
 
     await checkUpdatePermsissions(mockReq, mockRes, mockNext);
 
@@ -373,6 +379,7 @@ describe("checkUpdatePermsissions", () => {
 
   it("should call next with an error if the user is not the editor of the meeting", async () => {
     jest.spyOn(Participant, "findOne").mockResolvedValue(null);
+    jest.spyOn(Meeting, "findOne").mockResolvedValue({ id: 1 });
 
     await checkUpdatePermsissions(mockReq, mockRes, mockNext);
 

@@ -13,14 +13,20 @@ module.exports = class Email {
   }
 
   newTransport() {
-    return nodemailer.createTransport({
+    const transportOptions = {
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
       },
-    });
+    };
+
+    if (process.env.NODE_ENV === "test") {
+      transportOptions.rateLimit = 5;
+    }
+
+    return nodemailer.createTransport(transportOptions);
   }
 
   // Send the actual email

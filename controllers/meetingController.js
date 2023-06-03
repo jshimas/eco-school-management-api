@@ -126,7 +126,6 @@ exports.createMeeting = catchAsync(async (req, res, next) => {
   };
 
   const newMeeting = await sequelize.transaction(async (t) => {
-    console.log(meetingData);
     const createdMeeting = await Meeting.create(meetingData, {
       transaction: t,
     });
@@ -152,12 +151,9 @@ exports.createMeeting = catchAsync(async (req, res, next) => {
       newMeeting.id
     }`;
     new Email(req.user, recipients, URL).sendMeetingDetails(newMeeting);
-
-    res.status(200).json({
-      sucess: true,
-      message: `New meeting was created and an email was sent to: ${recipients
-        .map((r) => r.email)
-        .join(", ")} to inform about it`,
+    res.status(201).json({
+      success: true,
+      message: "Meeting was successfully created",
       URI: `/meetings/${newMeeting.id}`,
     });
   } catch (err) {
@@ -168,18 +164,25 @@ exports.createMeeting = catchAsync(async (req, res, next) => {
       )
     );
   }
-
-  res.status(201).json({
-    message: "Meeting was successfully created",
-    URI: `/meetings/${newMeeting.id}`,
-  });
 });
 
 exports.checkUpdatePermsissions = catchAsync(async (req, res, next) => {
+  const { id: meetingId } = req.params;
+
+  const meetingToUpdate = await Meeting.findOne({
+    where: { id: meetingId },
+  });
+
+  if (!meetingToUpdate) {
+    return next(
+      new AppError(`Meeting with ID ${meetingId} was not found`, 404)
+    );
+  }
+
   const editor = await Participant.findOne({
     where: {
       userId: req.user.id,
-      meetingId: req.params.meetingId,
+      meetingId: req.params.id,
       editor: true,
     },
   });
@@ -198,12 +201,10 @@ exports.updateMeeting = catchAsync(async (req, res, next) => {
   const editorsIds = req.body.editorsIds || [];
   const allParticipantsIds = [...new Set(participantsIds.concat(editorsIds))];
 
-  const meetingToUpdate = await Meeting.findOne({ where: { id: meetingId } });
-  if (!meetingToUpdate) {
-    return next(new AppError(`Meeting with ID ${meetingId} not found`, 404));
-  }
-
   // Updating the meeting
+  const meetingToUpdate = await Meeting.findOne({
+    where: { id: meetingId },
+  });
   await sequelize.transaction(async (t) => {
     await meetingToUpdate.update({ ...meetingBody }, { transaction: t });
 
