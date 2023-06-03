@@ -2,7 +2,6 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
 const Email = require("../utils/email");
 const { User, UserRole, School } = require("../models");
-const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
@@ -10,18 +9,18 @@ const jwt = require("jsonwebtoken");
 exports.getAllUser = catchAsync(async (req, res) => {
   const users = await User.findAll({
     include: UserRole,
-    attributes: {
-      include: ["id", "firstname", "lastname", "email"],
-    },
+    attributes: ["id", "firstname", "lastname", "email"],
   });
 
-  const usersJSON = users.map((user) => {
-    user = user.toJSON();
-    user.role = user.role?.role ?? null;
-    return user;
-  });
+  const usersJSON = users.map((user) => ({
+    id: user.id,
+    firstname: user.firstname,
+    lastname: user.lastname,
+    email: user.email,
+    role: user.role.role,
+  }));
 
-  res.status(200).json({ usersJSON });
+  res.status(200).json({ users: usersJSON });
 });
 
 exports.createUser = catchAsync(async (req, res, next) => {
@@ -105,36 +104,34 @@ exports.createPassword = catchAsync(async (req, res, next) => {
 exports.getUser = catchAsync(async (req, res, next) => {
   const user = await User.findByPk(req.params.id, {
     include: UserRole,
-    attributes: {
-      include: ["id", "firstname", "lastname", "email", "school_fk"],
-    },
+    attributes: ["id", "firstname", "lastname", "email", "school_fk"],
   });
 
   if (!user) return next(new AppError("User not found", 404));
 
-  const userJSON = user.toJSON();
-  userJSON.role = userJSON.role?.role ?? null;
+  const userJSON = {
+    id: user.id,
+    firstname: user.firstname,
+    lastname: user.lastname,
+    email: user.email,
+    role: user.role.role,
+  };
 
-  delete userJSON["schoolId"];
-  delete userJSON["password"];
-  delete userJSON["roleId"];
-
-  res.status(200).json({ userJSON });
+  res.status(200).json({ user: userJSON });
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   const user = await User.findByPk(req.params.id);
 
-  if (!user)
+  if (!user) {
     return next(
       new AppError(`The user with ID ${req.params.id} does not exist`, 404)
     );
+  }
 
-  const updatedUser = await User.update(req.body, {
-    where: { id: req.params.id },
-  });
+  await user.update(req.body);
 
-  res.status(200).json({ updatedUser });
+  res.status(200).json({ success: true });
 });
 
 exports.getMe = catchAsync(async (req, res, next) => {
@@ -158,12 +155,17 @@ exports.getMe = catchAsync(async (req, res, next) => {
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByPk(req.params.id);
 
-  if (!user)
+  if (!user) {
     return next(
       new AppError(`The user with ID ${req.params.id} does not exist`, 404)
     );
+  }
 
-  const deletedUser = await User.destroy({ where: { id: req.params.id } });
+  await User.destroy({
+    where: { id: req.params.id },
+  });
 
-  res.status(200).json("The user was found and successfully deleted.");
+  res
+    .status(200)
+    .json({ success: true, message: "The user was successfully deleted." });
 });
