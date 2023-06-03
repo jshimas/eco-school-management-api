@@ -6,27 +6,22 @@ module.exports = class Email {
   constructor(userSender, recipients, url) {
     this.to = Array.isArray(recipients)
       ? recipients.map((r) => r.email)
-      : recipients.email;
+      : [recipients.email];
     this.senderName = `${userSender.firstname} ${userSender.lastname}`;
     this.url = url;
     this.from = `Owly ${userSender.role} <${userSender.email}>`;
   }
 
   newTransport() {
-    const transportOptions = {
+    return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
       },
-    };
-
-    if (process.env.NODE_ENV === "test") {
-      transportOptions.rateLimit = 5;
-    }
-
-    return nodemailer.createTransport(transportOptions);
+      rateLimit: process.env.NODE_ENV === "test" ? 5 : undefined,
+    });
   }
 
   // Send the actual email
