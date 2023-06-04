@@ -16,7 +16,7 @@ module.exports = (userId, statusCode, res) => {
     expires: exp,
     httpOnly: true,
     sameSite: "none",
-    // secure: true,
+    secure: true,
   });
 
   res.status(statusCode).json({ userId, token, expIn: jwt.decode(token).exp });
