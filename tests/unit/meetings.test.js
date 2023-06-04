@@ -1,4 +1,10 @@
-const { Meeting, User, Image, Participant } = require("../../models");
+const {
+  sequelize,
+  Meeting,
+  User,
+  Image,
+  Participant,
+} = require("../../models");
 const { Op } = require("sequelize");
 const AppError = require("../../utils/AppError");
 const {
@@ -6,7 +12,9 @@ const {
   getAllMeetings,
   meetingBodyValidation,
   checkUpdatePermsissions,
+  updateMeeting,
 } = require("../../controllers/meetingController");
+const cloudinary = require("cloudinary").v2;
 
 jest.mock(
   "../../utils/catchAsync",
@@ -396,5 +404,59 @@ describe("checkUpdatePermsissions", () => {
     );
     expect(mockRes.status).not.toHaveBeenCalled();
     expect(mockRes.json).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateMeeting", () => {
+  test("should update the meeting, invitations, and images", async () => {
+    const req = {
+      params: { id: "meetingId" },
+      body: {
+        subject: "creation of new themes",
+        date: "2023-07-10",
+        startTime: "2023-07-10T10:30:00.000Z",
+        place: "Teams",
+        editorsIds: [1],
+      },
+      files: ["test file"],
+    };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    jest.spyOn(sequelize, "transaction").mockImplementation((fn) => fn());
+    jest.spyOn(Meeting, "findOne").mockResolvedValue({
+      update: jest.fn().mockResolvedValue(),
+    });
+    jest.spyOn(Participant, "destroy").mockResolvedValue();
+    jest.spyOn(Participant, "bulkCreate").mockResolvedValue();
+    jest.spyOn(Image, "findAll").mockResolvedValue([]);
+    jest.spyOn(Image, "destroy").mockResolvedValue();
+    jest.spyOn(Image, "bulkCreate").mockResolvedValue();
+
+    jest
+      .spyOn(cloudinary.uploader, "upload")
+      .mockResolvedValue({ url: "imageURL", public_id: "imagePublicID" });
+
+    await updateMeeting(req, res, {});
+
+    expect(res.status).toHaveBeenCalledWith(204);
+    expect(res.json).toHaveBeenCalledWith({});
+
+    expect(Meeting.findOne).toHaveBeenCalledWith({
+      where: { id: "meetingId" },
+    });
+
+    expect(Participant.destroy).toHaveBeenCalledWith({
+      where: { meetingId: "meetingId" },
+    });
+    expect(Participant.bulkCreate).toHaveBeenCalledWith(expect.any(Array), {});
+    expect(Image.findAll).toHaveBeenCalledWith({
+      where: { meetingId: "meetingId" },
+    });
+    expect(Image.destroy).toHaveBeenCalledWith({
+      where: { meetingId: "meetingId" },
+    });
+    expect(Image.bulkCreate).toHaveBeenCalledWith(expect.any(Array), {});
+
+    expect(cloudinary.uploader.upload).toHaveBeenCalled();
   });
 });

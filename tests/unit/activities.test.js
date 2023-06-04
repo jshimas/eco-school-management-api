@@ -1,7 +1,15 @@
 const activitiesController = require("../../controllers/activitiesController");
-const { School, Activity, Supervisor, User } = require("../../models");
+const {
+  sequelize,
+  School,
+  Activity,
+  Supervisor,
+  User,
+  Image,
+} = require("../../models");
 const { Op } = require("sequelize");
 const AppError = require("../../utils/AppError");
+const cloudinary = require("cloudinary").v2;
 
 jest.mock(
   "../../utils/catchAsync",
@@ -349,5 +357,62 @@ describe("getAllActivities", () => {
     );
     expect(mockRes.status).not.toHaveBeenCalled();
     expect(mockRes.json).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateActivity", () => {
+  test("should update the activity and images", async () => {
+    const req = {
+      params: {
+        schoolId: "schoolId",
+        activityId: "activityId",
+      },
+      body: {
+        theme: "transportation",
+        name: "eletric vehicles",
+        location: "Vila do Conde",
+        startDate: "2023-06-08",
+        supervisorsIds: [1],
+      },
+      files: ["test file"],
+    };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    jest.spyOn(sequelize, "transaction").mockImplementation((fn) => fn());
+    jest.spyOn(School, "findByPk").mockResolvedValue({}); // Mock a found school
+    jest
+      .spyOn(Activity, "findOne")
+      .mockResolvedValue({ update: jest.fn().mockResolvedValue() });
+    jest.spyOn(Image, "findAll").mockResolvedValue([]);
+    jest.spyOn(Image, "destroy").mockResolvedValue();
+    jest.spyOn(Image, "bulkCreate").mockResolvedValue();
+
+    jest
+      .spyOn(cloudinary.uploader, "upload")
+      .mockResolvedValue({ url: "imageURL", public_id: "imagePublicID" });
+
+    await activitiesController.updateActivity(req, res, {});
+
+    expect(res.status).toHaveBeenCalledWith(204);
+    expect(res.json).toHaveBeenCalledWith({});
+
+    expect(School.findByPk).toHaveBeenCalledWith("schoolId");
+    expect(Activity.findOne).toHaveBeenCalledWith({
+      where: {
+        [Op.and]: {
+          id: "activityId",
+          schoolId: "schoolId",
+        },
+      },
+    });
+    expect(Image.findAll).toHaveBeenCalledWith({
+      where: { activityId: "activityId" },
+    });
+    expect(Image.destroy).toHaveBeenCalledWith({
+      where: { activityId: "activityId" },
+    });
+    expect(Image.bulkCreate).toHaveBeenCalledWith(expect.any(Array), {});
+
+    expect(cloudinary.uploader.upload).toHaveBeenCalled();
   });
 });
