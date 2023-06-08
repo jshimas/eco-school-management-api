@@ -10,16 +10,13 @@ router.post("/create-password/:token", userController.createPassword);
 // All further routes are protected from unauthorized use
 router.use(authController.protect);
 
-router.post(
-  "/",
-  authController.restrictTo("coordinator", "admin"),
-  userController.createUser
-);
-
 router
   .route("/")
-  .get(authController.restrictTo("admin"), userController.getAllUser)
-  .post(userController.createUser);
+  .get(userController.getAllUser)
+  .post(
+    authController.restrictTo("coordinator", "admin"),
+    userController.createUser
+  );
 
 router.route("/me").get(userController.getMe);
 
