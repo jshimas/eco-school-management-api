@@ -163,7 +163,7 @@ exports.checkDeletePermission = catchAsync(async (req, res, next) => {
 
 exports.activityBodyValidation = catchAsync(async (req, res, next) => {
   console.log(req.body);
-  const supervisorsIds = req.body.supervisorsIds || [];
+  const supervisorsIds = JSON.parse(req.body.supervisorsIds) || [];
 
   const usersIds = [...new Set(supervisorsIds)];
 
@@ -226,7 +226,7 @@ exports.createActivity = catchAsync(async (req, res, next) => {
 
 exports.updateActivity = catchAsync(async (req, res, next) => {
   const { schoolId, activityId } = req.params;
-  const supervisorsIds = req.body.supervisorsIds || [];
+  const supervisorsIds = JSON.parse(req.body.supervisorsIds) || [];
   delete req.body.supervisorsIds;
 
   const school = await School.findByPk(schoolId);
@@ -258,7 +258,7 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
     await Supervisor.destroy({ where: { activityId: activityId } });
 
-    if (!supervisorsIds.some((id) => parseInt(id) === req.user.id)) {
+    if (!supervisorsIds.some((id) => id == req.user.id)) {
       supervisorsIds.push(req.user.id);
     }
 
