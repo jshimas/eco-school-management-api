@@ -22,7 +22,7 @@ cloudinary.config({
 // Define the storage and file limits
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.resolve("/tmp"));
+    cb(null, path.resolve("tmp"));
   },
   filename: function (req, file, cb) {
     cb(
@@ -112,6 +112,7 @@ exports.getActivity = async (req, res, next) => {
 };
 
 exports.checkSupervisorPermission = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const { activityId } = req.params;
 
   const supervisor = await Supervisor.findOne({
@@ -161,6 +162,7 @@ exports.checkDeletePermission = catchAsync(async (req, res, next) => {
 });
 
 exports.activityBodyValidation = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const supervisorsIds = req.body.supervisorsIds || [];
 
   const usersIds = [...new Set(supervisorsIds)];
@@ -221,6 +223,8 @@ exports.createActivity = catchAsync(async (req, res, next) => {
 
 exports.updateActivity = catchAsync(async (req, res, next) => {
   const { schoolId, activityId } = req.params;
+  const supervisorsIds = req.body.supervisorsIds || [];
+  delete req.body.supervisorsIds;
 
   const school = await School.findByPk(schoolId);
 
@@ -249,6 +253,16 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
   await sequelize.transaction(async (t) => {
     await activityToUpdate.update({ ...req.body }, { transaction: t });
 
+    await Supervisor.destroy({ where: { activityId: activityId } });
+
+    if (!supervisorsIds.includes(req.user.id)) supervisorsIds.push(req.user.id);
+    const supervisorsToCreate = supervisorsIds.map((sId) => ({
+      userId: sId,
+      activityId: activityId,
+    }));
+
+    await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
+
     if (req.files && req.files.length > 0) {
       const oldImages = await Image.findAll({
         where: { activityId: activityId },
@@ -266,14 +280,24 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
       });
 
       const cloudImages = await Promise.all(
-        req.files.map((file) => cloudinary.uploader.upload(file.path))
+        req.files.map(async (file) => {
+          const { path, filename } = file;
+          const uploadResult = await cloudinary.uploader.upload(path);
+          return {
+            ...uploadResult,
+            filename: filename,
+          };
+        })
       );
 
-      const imagesToCreate = cloudImages.map(({ url, public_id }) => ({
-        filepath: url,
-        cloudinaryId: public_id,
-        activityId: activityId,
-      }));
+      const imagesToCreate = cloudImages.map(
+        ({ url, public_id, filename }) => ({
+          filepath: url,
+          cloudinaryId: public_id,
+          activityId: activityId,
+          originalname: filename,
+        })
+      );
 
       await Image.bulkCreate(imagesToCreate, { transaction: t });
     }

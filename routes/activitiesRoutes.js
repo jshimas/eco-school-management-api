@@ -19,6 +19,7 @@ router
   .get(activitesController.getActivity)
   .patch(
     activitesController.checkSupervisorPermission,
+    activitesController.activityBodyValidation,
     activitesController.uploadImages,
     activitesController.updateActivity
   )
