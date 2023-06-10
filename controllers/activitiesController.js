@@ -292,8 +292,11 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
       );
 
       await Image.destroy({
-        where: { activityId: activityId },
-        id: { [Op.notIn]: oldImagesIds },
+        where: {
+          activityId: activityId,
+          id: { [Op.notIn]: oldImagesIds },
+        },
+
         transaction: t,
       });
 
