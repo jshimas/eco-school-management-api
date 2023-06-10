@@ -163,6 +163,7 @@ exports.checkDeletePermission = catchAsync(async (req, res, next) => {
 
 exports.activityBodyValidation = catchAsync(async (req, res, next) => {
   console.log(req.body);
+  console.log("SUPERV IDS", req.body.supervisorsIds);
   const supervisorsIds = JSON.parse(req.body.supervisorsIds) || [];
 
   const usersIds = [...new Set(supervisorsIds)];
