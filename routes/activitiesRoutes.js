@@ -18,9 +18,9 @@ router
   .route("/:activityId")
   .get(activitesController.getActivity)
   .patch(
+    activitesController.uploadImages,
     activitesController.checkSupervisorPermission,
     activitesController.activityBodyValidation,
-    activitesController.uploadImages,
     activitesController.updateActivity
   )
   .delete(
