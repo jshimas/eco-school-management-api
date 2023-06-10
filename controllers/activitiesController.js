@@ -205,7 +205,8 @@ exports.createActivity = catchAsync(async (req, res, next) => {
   const newActivity = await sequelize.transaction(async (t) => {
     const activity = await Activity.create(activityBody, { transaction: t });
 
-    if (!supervisorsIds.includes(req.user.id)) supervisorsIds.push(req.user.id);
+    if (!supervisorsIds.includes(req.user.id.toString()))
+      supervisorsIds.push(req.user.id);
     const supervisorsToCreate = supervisorsIds.map((sId) => ({
       userId: sId,
       activityId: activity.id,
