@@ -276,30 +276,31 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
     await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
 
     console.log(oldImagesIds);
+
+    // remove unwanted ols images
+    const oldImages = await Image.findAll({
+      where: {
+        activityId: activityId,
+        id: { [Op.notIn]: oldImagesIds }, // we don't want to delete the old images that the user did not remove on the client
+      },
+    });
+
+    await Promise.all(
+      oldImages.map(async (image) => {
+        await cloudinary.uploader.destroy(image.cloudinaryId);
+      })
+    );
+
+    await Image.destroy({
+      where: {
+        activityId: activityId,
+        id: { [Op.notIn]: oldImagesIds },
+      },
+
+      transaction: t,
+    });
+
     if (req.files && req.files.length > 0) {
-      const oldImages = await Image.findAll({
-        where: {
-          activityId: activityId,
-          id: { [Op.notIn]: oldImagesIds }, // we don't want to delete the old images that the user did not remove on the client
-        },
-      });
-
-      console.log("OLD IMGS", oldImages);
-      await Promise.all(
-        oldImages.map(async (image) => {
-          await cloudinary.uploader.destroy(image.cloudinaryId);
-        })
-      );
-
-      await Image.destroy({
-        where: {
-          activityId: activityId,
-          id: { [Op.notIn]: oldImagesIds },
-        },
-
-        transaction: t,
-      });
-
       const cloudImages = await Promise.all(
         req.files.map(async (file) => {
           console.log(file);
