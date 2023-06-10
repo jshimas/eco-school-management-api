@@ -284,6 +284,7 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
         },
       });
 
+      console.log("OLD IMGS", oldImages);
       await Promise.all(
         oldImages.map(async (image) => {
           await cloudinary.uploader.destroy(image.cloudinaryId);
