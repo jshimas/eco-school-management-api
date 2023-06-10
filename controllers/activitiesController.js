@@ -227,7 +227,12 @@ exports.createActivity = catchAsync(async (req, res, next) => {
 
 exports.updateActivity = catchAsync(async (req, res, next) => {
   const { schoolId, activityId } = req.params;
-  const supervisorsIds = JSON.parse(req.body.supervisorsIds) || [];
+  const supervisorsIds = req.body.supervisorsIds
+    ? JSON.parse(req.body.supervisorsIds)
+    : [];
+  const oldImagesIds = req.body.oldImagesIds
+    ? JSON.parse(req.body.oldImagesIds)
+    : [];
   delete req.body.supervisorsIds;
 
   const school = await School.findByPk(schoolId);
@@ -273,7 +278,10 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
     console.log(req.files);
     if (req.files && req.files.length > 0) {
       const oldImages = await Image.findAll({
-        where: { activityId: activityId },
+        where: {
+          activityId: activityId,
+          id: { [Op.notIn]: oldImagesIds }, // we don't want to delete the old images that the user did not remove on the client
+        },
       });
 
       await Promise.all(
@@ -284,6 +292,7 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
       await Image.destroy({
         where: { activityId: activityId },
+        id: { [Op.notIn]: oldImagesIds },
         transaction: t,
       });
 
