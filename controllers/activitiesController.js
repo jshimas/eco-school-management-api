@@ -87,7 +87,7 @@ exports.getActivity = async (req, res, next) => {
     include: [
       {
         model: Image,
-        attributes: ["id", "filepath"],
+        attributes: ["id", "filepath", "originalName"],
       },
       {
         model: User,
@@ -205,8 +205,10 @@ exports.createActivity = catchAsync(async (req, res, next) => {
   const newActivity = await sequelize.transaction(async (t) => {
     const activity = await Activity.create(activityBody, { transaction: t });
 
-    if (!supervisorsIds.includes(req.user.id.toString()))
+    if (!supervisorsIds.some((id) => parseInt(id) === req.user.id)) {
       supervisorsIds.push(req.user.id);
+    }
+
     const supervisorsToCreate = supervisorsIds.map((sId) => ({
       userId: sId,
       activityId: activity.id,
@@ -256,7 +258,10 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
     await Supervisor.destroy({ where: { activityId: activityId } });
 
-    if (!supervisorsIds.includes(req.user.id)) supervisorsIds.push(req.user.id);
+    if (!supervisorsIds.some((id) => parseInt(id) === req.user.id)) {
+      supervisorsIds.push(req.user.id);
+    }
+
     const supervisorsToCreate = supervisorsIds.map((sId) => ({
       userId: sId,
       activityId: activityId,
@@ -282,24 +287,26 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
       const cloudImages = await Promise.all(
         req.files.map(async (file) => {
-          const { path, filename } = file;
+          console.log(file);
+          const { path, originalname } = file;
           const uploadResult = await cloudinary.uploader.upload(path);
           return {
             ...uploadResult,
-            filename: filename,
+            originalname,
           };
         })
       );
 
       const imagesToCreate = cloudImages.map(
-        ({ url, public_id, filename }) => ({
+        ({ url, public_id, originalname }) => ({
           filepath: url,
           cloudinaryId: public_id,
           activityId: activityId,
-          originalname: filename,
+          originalName: originalname,
         })
       );
 
+      console.log(imagesToCreate);
       await Image.bulkCreate(imagesToCreate, { transaction: t });
     }
   });
