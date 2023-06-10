@@ -275,7 +275,7 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
     await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
 
-    console.log(req.files);
+    console.log(oldImagesIds);
     if (req.files && req.files.length > 0) {
       const oldImages = await Image.findAll({
         where: {
