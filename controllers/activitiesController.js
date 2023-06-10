@@ -259,8 +259,8 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
     await Supervisor.destroy({ where: { activityId: activityId } });
 
-    if (!supervisorsIds.some((id) => id == req.user.id)) {
-      supervisorsIds.push(req.user.id);
+    if (!supervisorsIds.some((id) => id == req.body.creatorId)) {
+      supervisorsIds.push(req.body.creatorId);
     }
 
     const supervisorsToCreate = supervisorsIds.map((sId) => ({
@@ -270,6 +270,7 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
     await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
 
+    console.log(req.files);
     if (req.files && req.files.length > 0) {
       const oldImages = await Image.findAll({
         where: { activityId: activityId },
