@@ -51,7 +51,11 @@ module.exports = class Email {
 
       console.log("SENDING EMAIL");
       console.log(mailOptions);
-      this.newTransport().sendMail(mailOptions);
+      try {
+        this.newTransport().sendMail(mailOptions);
+      } catch (err) {
+        console.log("EMAIL ERROR: ", err);
+      }
     });
   }
 
