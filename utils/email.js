@@ -50,6 +50,7 @@ module.exports = class Email {
       };
 
       console.log("SENDING EMAIL");
+      console.log(mailOptions);
       this.newTransport().sendMail(mailOptions);
     });
   }
