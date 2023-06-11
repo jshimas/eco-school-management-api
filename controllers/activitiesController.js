@@ -162,7 +162,9 @@ exports.checkDeletePermission = catchAsync(async (req, res, next) => {
 });
 
 exports.activityBodyValidation = catchAsync(async (req, res, next) => {
-  const supervisorsIds = req.body.supervisorsIds
+  const supervisorsIds = Array.isArray(req.body.supervisorsIds)
+    ? req.body.supervisorsIds
+    : req.body.supervisorsIds?.length
     ? JSON.parse(req.body.supervisorsIds)
     : [];
 
@@ -227,7 +229,9 @@ exports.createActivity = catchAsync(async (req, res, next) => {
 
 exports.updateActivity = catchAsync(async (req, res, next) => {
   const { schoolId, activityId } = req.params;
-  const supervisorsIds = req.body.supervisorsIds
+  const supervisorsIds = Array.isArray(req.body.supervisorsIds)
+    ? req.body.supervisorsIds
+    : req.body.supervisorsIds?.length
     ? JSON.parse(req.body.supervisorsIds)
     : [];
   const oldImagesIds = req.body.oldImagesIds
