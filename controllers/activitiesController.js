@@ -277,7 +277,7 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
 
     console.log(oldImagesIds);
 
-    // remove unwanted ols images
+    // remove unwanted old images
     const oldImages = await Image.findAll({
       where: {
         activityId: activityId,

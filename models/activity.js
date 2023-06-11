@@ -31,9 +31,8 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isDate: true,
           isDateAfterOrEqualToday(value) {
-            const today = new Date();
-            const inputDate = new Date(value);
-            if (inputDate < today)
+            if (new Date(value) === new Date(this.startDate)) return;
+            if (new Date(value) < new Date())
               throw new Error("Date should be today or in the future");
           },
         },
@@ -44,8 +43,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isDate: true,
           isEndDateAfterOrEqualStartDate(value) {
-            const inputDate = new Date(value);
-            if (inputDate < this.startDate)
+            if (new Date(value) <= new Date(this.startDate))
               throw new Error("End date should not be before the start date");
           },
         },
