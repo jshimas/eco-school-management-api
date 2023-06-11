@@ -51,9 +51,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
 
   // Sending user token to create a new password
   try {
-    const URL = `${req.protocol}://${req.get(
-      "host"
-    )}/api/v1/users/create-password/${token}`;
+    const URL = `http://localhost:5173/users/create-password?token=${token}`;
 
     const newUserJson = newUser.toJSON();
     new Email(req.user, newUserJson, URL).sendPasswordCreate();

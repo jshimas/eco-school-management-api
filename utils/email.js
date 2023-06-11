@@ -18,6 +18,7 @@ module.exports = class Email {
     console.log(process.env.EMAIL_USERNAME);
     console.log(process.env.EMAIL_PASSWORD);
     return nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE,
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
