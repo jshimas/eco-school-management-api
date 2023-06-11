@@ -13,6 +13,10 @@ module.exports = class Email {
   }
 
   newTransport() {
+    console.log(EMAIL_HOST);
+    console.log(EMAIL_PORT);
+    console.log(EMAIL_USERNAME);
+    console.log(EMAIL_PASSWORD);
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
@@ -20,7 +24,6 @@ module.exports = class Email {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
       },
-      rateLimit: process.env.NODE_ENV === "test" ? 5 : undefined,
     });
   }
 
