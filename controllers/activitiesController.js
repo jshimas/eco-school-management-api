@@ -262,18 +262,20 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
   await sequelize.transaction(async (t) => {
     await activityToUpdate.update({ ...req.body }, { transaction: t });
 
-    await Supervisor.destroy({ where: { activityId: activityId } });
+    if (supervisorsIds && supervisorsIds.length > 0) {
+      await Supervisor.destroy({ where: { activityId: activityId } });
 
-    if (!supervisorsIds.some((id) => id == req.body.creatorId)) {
-      supervisorsIds.push(req.body.creatorId);
+      if (!supervisorsIds.some((id) => id == req.body.creatorId)) {
+        supervisorsIds.push(req.body.creatorId);
+      }
+
+      const supervisorsToCreate = supervisorsIds.map((sId) => ({
+        userId: sId,
+        activityId: activityId,
+      }));
+
+      await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
     }
-
-    const supervisorsToCreate = supervisorsIds.map((sId) => ({
-      userId: sId,
-      activityId: activityId,
-    }));
-
-    await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
 
     console.log(oldImagesIds);
 
