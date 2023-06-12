@@ -373,6 +373,7 @@ describe("updateActivity", () => {
         location: "Vila do Conde",
         startDate: "2023-06-08",
         supervisorsIds: [1],
+        oldImagesIds: [2, 3],
       },
       files: ["test file"],
     };
@@ -386,6 +387,8 @@ describe("updateActivity", () => {
     jest.spyOn(Image, "findAll").mockResolvedValue([]);
     jest.spyOn(Image, "destroy").mockResolvedValue();
     jest.spyOn(Image, "bulkCreate").mockResolvedValue();
+    jest.spyOn(Supervisor, "destroy").mockResolvedValue();
+    jest.spyOn(Supervisor, "bulkCreate").mockResolvedValue();
 
     jest
       .spyOn(cloudinary.uploader, "upload")
@@ -406,10 +409,16 @@ describe("updateActivity", () => {
       },
     });
     expect(Image.findAll).toHaveBeenCalledWith({
-      where: { activityId: "activityId" },
+      where: {
+        activityId: "activityId",
+        id: { [Op.notIn]: req.body.oldImagesIds }, // we don't want to delete the old images that the user did not remove on the client
+      },
     });
     expect(Image.destroy).toHaveBeenCalledWith({
-      where: { activityId: "activityId" },
+      where: {
+        activityId: "activityId",
+        id: { [Op.notIn]: req.body.oldImagesIds },
+      },
     });
     expect(Image.bulkCreate).toHaveBeenCalledWith(expect.any(Array), {});
 

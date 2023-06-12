@@ -120,6 +120,8 @@ describe("Activity Controller", () => {
   });
 
   describe("DELETE /schools/:schoolId/activities", () => {
+    const INVALID_SCHOOL_ID = 99999;
+    const INVALID_ACTIVITY_ID = 99999;
     let schoolId;
     let activityId;
     const testUserId = 2;
@@ -162,9 +164,25 @@ describe("Activity Controller", () => {
       const deletedActivity = await Activity.findByPk(activityId);
       expect(deletedActivity).toBeNull();
     });
+
+    it("should return an error if school does not exist", async () => {
+      const token = jwt.sign({ id: testUserId }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      });
+
+      const response = await request(app)
+        .delete(`/api/v1/schools/${INVALID_SCHOOL_ID}/activities/${activityId}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe(
+        `School with ID ${INVALID_SCHOOL_ID} was not found.`
+      );
+    });
   });
 
   describe("checkDeletePermission middleware", () => {
+    const INVALID_ACTIVITY_ID = 9999;
     let testActivity;
     let schoolId = 1;
     let memberId = 1;
@@ -174,7 +192,7 @@ describe("Activity Controller", () => {
         theme: "transportation",
         name: "eletric vehicles",
         location: "Vila do Conde",
-        startDate: "2023-06-08",
+        startDate: "2024-06-08",
         supervisorsIds: [59, 60],
         creatorId: memberId,
         schoolId: schoolId,
@@ -196,6 +214,21 @@ describe("Activity Controller", () => {
         .delete(`/api/v1/schools/${schoolId}/activities/${testActivity.id}`)
         .set("Authorization", `Bearer ${token}`)
         .expect(403);
+    });
+
+    it("should return an error if activity does not exist", async () => {
+      const token = jwt.sign({ id: memberId }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      });
+
+      const response = await request(app)
+        .delete(`/api/v1/schools/${schoolId}/activities/${INVALID_ACTIVITY_ID}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe(
+        `The ativity with ID ${INVALID_ACTIVITY_ID} was not found`
+      );
     });
   });
 });

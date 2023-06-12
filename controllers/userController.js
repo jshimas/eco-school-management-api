@@ -85,10 +85,6 @@ exports.createPassword = catchAsync(async (req, res, next) => {
     process.env.JWT_SECRET
   );
 
-  console.log(req.params.token);
-  console.log(decoded);
-  console.log(decoded);
-
   // 3) Check if user still exists
   let user = await User.findByPk(decoded.id);
   if (!user) {

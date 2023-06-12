@@ -112,7 +112,6 @@ exports.getActivity = async (req, res, next) => {
 };
 
 exports.checkSupervisorPermission = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   const { activityId } = req.params;
 
   const supervisor = await Supervisor.findOne({
@@ -234,7 +233,9 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
     : req.body.supervisorsIds?.length
     ? JSON.parse(req.body.supervisorsIds)
     : [];
-  const oldImagesIds = req.body.oldImagesIds
+  const oldImagesIds = Array.isArray(req.body.oldImagesIds)
+    ? req.body.oldImagesIds
+    : req.body.oldImagesIds?.length
     ? JSON.parse(req.body.oldImagesIds)
     : [];
   delete req.body.supervisorsIds;
@@ -281,8 +282,6 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
       await Supervisor.bulkCreate(supervisorsToCreate, { transaction: t });
     }
 
-    console.log(oldImagesIds);
-
     // remove unwanted old images
     const oldImages = await Image.findAll({
       where: {
@@ -309,7 +308,6 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       const cloudImages = await Promise.all(
         req.files.map(async (file) => {
-          console.log(file);
           const { path, originalname } = file;
           const uploadResult = await cloudinary.uploader.upload(path);
           return {
@@ -328,7 +326,6 @@ exports.updateActivity = catchAsync(async (req, res, next) => {
         })
       );
 
-      console.log(imagesToCreate);
       await Image.bulkCreate(imagesToCreate, { transaction: t });
     }
   });
@@ -354,14 +351,6 @@ exports.deleteActivity = catchAsync(async (req, res, next) => {
     },
   });
 
-  if (!activityToDelete) {
-    return next(
-      new AppError(
-        `Activity with ID ${activityId} was not found at school with ID ${schoolId}.`,
-        404
-      )
-    );
-  }
   await activityToDelete.destroy();
 
   res.status(204).json({});
