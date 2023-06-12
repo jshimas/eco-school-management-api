@@ -31,13 +31,8 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isDate: true,
           isDateAfterOrEqualToday(value) {
-            console.log("DATE PARSING");
-            console.log(value);
-            console.log(new Date(value));
-            console.log(this.startDate);
-            console.log(new Date(this.startDate));
-            console.log(new Date(value) == new Date(this.startDate));
-            if (new Date(value) == new Date(this.startDate)) return; // In DB yyyy-mm-dd hh:mm:ss, but care only about yyyy-dd-mm part
+            if (new Date(value).getTime() == new Date(this.startDate).getTime())
+              return;
             if (new Date(value) < new Date())
               throw new Error("Date should be today or in the future");
           },
