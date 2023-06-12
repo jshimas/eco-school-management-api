@@ -31,10 +31,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isDate: true,
           isDateAfterOrEqualToday(value) {
-            if (
-              new Date(value.split(" ")[0]) ===
-              new Date(this.startDate.split(" ")[0])
-            )
+            if (new Date(value) === new Date(this.startDate.split(" ")[0]))
               return; // In DB yyyy-mm-dd hh:mm:ss, but care only about yyyy-dd-mm part
             if (new Date(value) < new Date())
               throw new Error("Date should be today or in the future");
