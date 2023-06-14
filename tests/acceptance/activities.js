@@ -65,7 +65,7 @@ exports.updateActivity = async () => {
     await driver.findElement(By.id("email")).sendKeys("Coordinator@owly.com");
     await driver.findElement(By.id("password")).sendKeys("Esmad_2223");
     await driver.findElement(By.className("btn")).click();
-    await driver.sleep(3000);
+    await driver.sleep(5000);
 
     // navigate to activities
     await driver.findElement(By.css('a[href="/schools/1/activities"]')).click();
@@ -91,9 +91,7 @@ exports.updateActivity = async () => {
     });
 
     await driver.findElement(By.id("4")).click();
-    await driver
-      .findElement(By.id("location"))
-      .sendKeys("test-location-254613");
+    await driver.findElement(By.id("location")).sendKeys(" in the wilderness");
 
     // Click the save button using JavaScript
     const button = await driver.findElement(By.css("button.btn.btn-success"));
@@ -101,7 +99,10 @@ exports.updateActivity = async () => {
     await driver.sleep(3000);
 
     // bring back the original activity
-    await originalActivity.save();
+    await Activity.update(
+      { location: originalActivity.location },
+      { where: { id: originalActivity.id } }
+    );
     await driver.sleep(3000);
 
     await driver.quit();

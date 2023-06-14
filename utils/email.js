@@ -9,12 +9,11 @@ module.exports = class Email {
       : [recipients.email];
     this.senderName = `${userSender.firstname} ${userSender.lastname}`;
     this.url = url;
-    this.from = `Owly ${userSender.role} <${userSender.email}>`;
+    this.from = `Owly ${userSender.role} <${process.env.EMAIL_USERNAME}>`;
   }
 
   newTransport() {
     return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {

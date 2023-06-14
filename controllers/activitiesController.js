@@ -145,9 +145,8 @@ exports.checkDeletePermission = catchAsync(async (req, res, next) => {
       new AppError(`The ativity with ID ${activityId} was not found`, 404)
     );
   }
-  // 1. an activity can be deleted by it's creator, coordinator and admin
+  // 1. an activity can be deleted by it's creator, coordinator and admin or
   // 2. creator can only delete the acitivity until it's not approved
-
   if (
     ["admin", "coordinator"].includes(req.user.role) ||
     (activity.creatorId === req.user.id && !activity.approved)
