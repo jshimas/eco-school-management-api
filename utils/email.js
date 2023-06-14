@@ -37,29 +37,29 @@ module.exports = class Email {
       }
     );
 
-    Promise.all(
-      this.to.forEach(async (recipient) => {
-        const mailOptions = {
-          from: this.from,
-          to: recipient,
-          subject: subject,
-          html,
-          text: htmlToText(html),
-        };
+    const sendEmailPromises = this.to.map(async (recipient) => {
+      const mailOptions = {
+        from: this.from,
+        to: recipient,
+        subject,
+        html,
+        text: htmlToText(html),
+      };
 
-        console.log("SENDING EMAIL");
-        await new Promise((resolve, reject) => {
-          this.newTransport().sendMail(mailOptions, (err, info) => {
-            if (err) {
-              console.error(err);
-              reject(err);
-            } else {
-              resolve(info);
-            }
-          });
+      console.log("SENDING EMAIL");
+      return new Promise((resolve, reject) => {
+        this.newTransport().sendMail(mailOptions, (err, info) => {
+          if (err) {
+            console.error(err);
+            reject(err);
+          } else {
+            resolve(info);
+          }
         });
-      })
-    );
+      });
+    });
+
+    await Promise.all(sendEmailPromises);
   }
 
   sendPasswordCreate() {
