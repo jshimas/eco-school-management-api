@@ -120,6 +120,7 @@ describe("Meeting Controller", () => {
         .set("Authorization", `Bearer ${token}`)
         .send(updatedMeetingData);
 
+      console.log(response.body);
       expect(response.status).toBe(204);
 
       // Verify that the meeting has been updated in the database

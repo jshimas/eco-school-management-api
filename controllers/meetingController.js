@@ -187,7 +187,9 @@ exports.checkUpdatePermsissions = catchAsync(async (req, res, next) => {
     },
   });
 
-  if (!editor || req.user.role !== "admin" || req.user.role !== "coordinator") {
+  console.log("EDITOR: ", editor);
+  console.log("req.user.role: ", req.user.role);
+  if (!editor && req.user.role !== "admin" && req.user.role !== "coordinator") {
     return next(new AppError(`You are not the editor of this meeting`, 401));
   }
 
