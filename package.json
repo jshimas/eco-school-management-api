@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "jest --runInBand --coverage",
+    "test:ignore:integration": "jest --testPathIgnorePatterns \"tests/integration/.*\" --runInBand --coverage",
     "start": "node server.js"
   },
   "keywords": [],
