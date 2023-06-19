@@ -42,29 +42,28 @@ exports.uploadImages = multer({ storage, limits }).array("images");
 exports.getAllActivities = catchAsync(async (req, res, next) => {
   const { schoolId } = req.params;
 
-  const school = await School.findByPk(schoolId, {
-    include: {
-      model: Activity,
-      attributes: [
-        "id",
-        "theme",
-        "name",
-        "approved",
-        "startDate",
-        "endDate",
-        "reason",
-        "goal",
-        "result",
-        "resources",
-      ],
-    },
-  });
+  const school = await School.findByPk(schoolId);
 
   if (!school) {
     return next(new AppError(`School with ID ${schoolId} was not found.`, 404));
   }
 
-  res.status(200).json({ activities: school.toJSON().activities });
+  const activities = await Activity.findAll({
+    where: {
+      schoolId,
+    },
+    include: {
+      model: Image,
+      attributes: {
+        exclude: ["meetingId", "activityId"],
+      },
+    },
+    attributes: {
+      exclude: ["user_creator_fk", "school_fk", "creatorId", "schoolId"],
+    },
+  });
+
+  res.status(200).json({ activities });
 });
 
 exports.getActivity = async (req, res, next) => {
