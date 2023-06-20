@@ -66,11 +66,11 @@ module.exports = class Email {
     await Promise.all(sendEmailPromises);
   }
 
-  sendPasswordCreate() {
-    this.send("welcome", "Welcome to the Owly!");
+  async sendPasswordCreate() {
+    await this.send("welcome", "Welcome to the Owly!");
   }
 
-  sendMeetingDetails(meeting) {
-    this.send("meeting", "Invitation to join the meeting", meeting);
+  async sendMeetingDetails(meeting) {
+    await this.send("meeting", "Invitation to join the meeting", meeting);
   }
 };

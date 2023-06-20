@@ -54,7 +54,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
     const URL = `http://localhost:5173/users/create-password?token=${token}`;
 
     const newUserJson = newUser.toJSON();
-    new Email(req.user, newUserJson, URL).sendPasswordCreate();
+    await new Email(req.user, newUserJson, URL).sendPasswordCreate();
 
     res.status(200).json({
       message: `Email was sent to ${newUserJson.email} to create an account password`,

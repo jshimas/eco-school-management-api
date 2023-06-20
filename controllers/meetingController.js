@@ -147,10 +147,8 @@ exports.createMeeting = catchAsync(async (req, res, next) => {
     where: { schoolId: req.user.schoolId },
   });
   try {
-    const URL = `${req.protocol}://${req.get("host")}/api/v1/meetings/${
-      newMeeting.id
-    }`;
-    new Email(req.user, recipients, URL).sendMeetingDetails(newMeeting);
+    const URL = `http://localhost:5173/schools/${req.user.schoolId}/meetings/${newMeeting.id}`;
+    await new Email(req.user, recipients, URL).sendMeetingDetails(newMeeting);
     res.status(201).json({
       success: true,
       message: "Meeting was successfully created",
