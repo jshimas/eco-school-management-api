@@ -55,7 +55,7 @@ exports.getMeeting = catchAsync(async (req, res, next) => {
       },
       {
         model: Image,
-        attributes: ["id", "filepath"],
+        attributes: ["id", "filepath", "originalName"],
       },
     ],
   });
@@ -199,8 +199,24 @@ exports.checkUpdatePermsissions = catchAsync(async (req, res, next) => {
 exports.updateMeeting = catchAsync(async (req, res, next) => {
   const meetingBody = req.body;
   const { id: meetingId } = req.params;
-  const participantsIds = req.body.participantsIds || [];
-  const editorsIds = req.body.editorsIds || [];
+  const participantsIds = Array.isArray(req.body.participantsIds)
+    ? req.body.participantsIds
+    : req.body.participantsIds?.length
+    ? JSON.parse(req.body.participantsIds)
+    : [];
+  const editorsIds = Array.isArray(req.body.editorsIds)
+    ? req.body.editorsIds
+    : req.body.editorsIds?.length
+    ? JSON.parse(req.body.editorsIds)
+    : [];
+  const oldImagesIds = Array.isArray(req.body.oldImagesIds)
+    ? req.body.oldImagesIds
+    : req.body.oldImagesIds?.length
+    ? JSON.parse(req.body.oldImagesIds)
+    : [];
+
+  console.log("IDS: ", participantsIds, editorsIds);
+
   const allParticipantsIds = [...new Set(participantsIds.concat(editorsIds))];
 
   // Updating the meeting
@@ -226,34 +242,49 @@ exports.updateMeeting = catchAsync(async (req, res, next) => {
       await Participant.bulkCreate(participantsToCreate, { transaction: t });
     }
 
-    if (req.files && req.files.length > 0) {
-      // removing old images from DB and cloudinary
-      const oldImages = await Image.findAll({
-        where: { meetingId: meetingId },
-        transaction: t,
-      });
+    // remove unwanted old images
+    const oldImages = await Image.findAll({
+      where: {
+        meetingId: meetingId,
+        id: { [Op.notIn]: oldImagesIds }, // we don't want to delete the old images that the user did not remove on the client
+      },
+    });
 
-      await Promise.all(
-        oldImages.map(async (image) => {
-          await cloudinary.uploader.destroy(image.cloudinaryId);
+    await Promise.all(
+      oldImages.map(async (image) => {
+        await cloudinary.uploader.destroy(image.cloudinaryId);
+      })
+    );
+
+    await Image.destroy({
+      where: {
+        meetingId: meetingId,
+        id: { [Op.notIn]: oldImagesIds },
+      },
+
+      transaction: t,
+    });
+
+    if (req.files && req.files.length > 0) {
+      const cloudImages = await Promise.all(
+        req.files.map(async (file) => {
+          const { path, originalname } = file;
+          const uploadResult = await cloudinary.uploader.upload(path);
+          return {
+            ...uploadResult,
+            originalname,
+          };
         })
       );
 
-      await Image.destroy({
-        where: { meetingId: meetingId },
-        transaction: t,
-      });
-
-      // creating new images in DB and cloudinary
-      const cloudImages = await Promise.all(
-        req.files.map((file) => cloudinary.uploader.upload(file.path))
+      const imagesToCreate = cloudImages.map(
+        ({ url, public_id, originalname }) => ({
+          filepath: url,
+          cloudinaryId: public_id,
+          meetingId: meetingId,
+          originalName: originalname,
+        })
       );
-
-      const imagesToCreate = cloudImages.map(({ url, public_id }) => ({
-        filepath: url,
-        cloudinaryId: public_id,
-        meetingId: meetingId,
-      }));
 
       await Image.bulkCreate(imagesToCreate, { transaction: t });
     }

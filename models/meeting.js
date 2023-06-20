@@ -13,7 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsToMany(User, {
         through: {
           model: "Participant",
-          unique: false,
         },
         as: "participants",
         foreignKey: "meeting_fk",
@@ -63,9 +62,12 @@ module.exports = (sequelize, DataTypes) => {
         field: "end_time",
         validate: {
           isDate: true,
-          isAfter: {
-            args: this.startTime?.toString(),
-            msg: "The end time of the meeting must be after the start time.",
+          isAfterOrEqualStartTime(value) {
+            const endTime = new Date(value);
+            console.log("endTime: ", endTime);
+            console.log("startTime: ", new Date(this.startTime));
+            if (endTime < new Date(this.startTime))
+              throw new Error("endTime should be after or equal the startTime");
           },
         },
       },
@@ -73,7 +75,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      notes: DataTypes.STRING,
+      notes: DataTypes.TEXT,
       coordinatorId: {
         type: DataTypes.INTEGER,
         allowNull: false,
