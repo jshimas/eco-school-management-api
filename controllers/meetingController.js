@@ -16,7 +16,7 @@ cloudinary.config({
 // Define the storage and file limits
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.resolve("tmp"));
+    cb(null, path.resolve("/tmp"));
   },
   filename: function (req, file, cb) {
     cb(null, `meeting-${req.params.id}-${Date.now()}-${file.originalname}`);

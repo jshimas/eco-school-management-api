@@ -102,7 +102,13 @@ exports.createPassword = catchAsync(async (req, res, next) => {
 exports.getUser = catchAsync(async (req, res, next) => {
   const user = await User.findByPk(req.params.id, {
     include: UserRole,
-    attributes: ["id", "firstname", "lastname", "email", "school_fk"],
+    attributes: [
+      "id",
+      "firstname",
+      "lastname",
+      "email",
+      ["school_fk", "schoolId"],
+    ],
   });
 
   if (!user) return next(new AppError("User not found", 404));
@@ -113,6 +119,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
     lastname: user.lastname,
     email: user.email,
     role: user.role.role,
+    schoolId: user.schoolId,
   };
 
   res.status(200).json({ user: userJSON });
