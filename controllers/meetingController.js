@@ -187,8 +187,6 @@ exports.checkUpdatePermsissions = catchAsync(async (req, res, next) => {
     },
   });
 
-  console.log("EDITOR: ", editor);
-  console.log("req.user.role: ", req.user.role);
   if (!editor && req.user.role !== "admin" && req.user.role !== "coordinator") {
     return next(new AppError(`You are not the editor of this meeting`, 401));
   }
@@ -214,8 +212,6 @@ exports.updateMeeting = catchAsync(async (req, res, next) => {
     : req.body.oldImagesIds?.length
     ? JSON.parse(req.body.oldImagesIds)
     : [];
-
-  console.log("IDS: ", participantsIds, editorsIds);
 
   const allParticipantsIds = [...new Set(participantsIds.concat(editorsIds))];
 

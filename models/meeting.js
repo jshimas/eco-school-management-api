@@ -64,8 +64,6 @@ module.exports = (sequelize, DataTypes) => {
           isDate: true,
           isAfterOrEqualStartTime(value) {
             const endTime = new Date(value);
-            console.log("endTime: ", endTime);
-            console.log("startTime: ", new Date(this.startTime));
             if (endTime < new Date(this.startTime))
               throw new Error("endTime should be after or equal the startTime");
           },
