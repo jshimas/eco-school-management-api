@@ -1,4 +1,4 @@
-# Owly Eco-School Management Application
+# Owly Eco-School Management Application REST API
 
 ## Introduction
 
